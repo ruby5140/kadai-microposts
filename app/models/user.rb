@@ -7,14 +7,25 @@ class User < ApplicationRecord
   has_secure_password
 
   has_many :microposts
-
+  
+  ### ここから　###
+  #User が Relationship と一対多である関係
   has_many :relationships
-  #自分がフォローしている Userを取得
+  #自分がフォローしている Userを取得(中間テーブルから先のモデルを参照)
+  #Following クラスは無くこのために利用しているだけ
+  #through: :relationshipsは、has_many: relationships の結果を中間テーブルとして指定
+  #source: :follow 指定した中間テーブルのfollowidを指定している
   has_many :followings, through: :relationships, source: :follow
+  ### ここまでが自分がフォローしている User 達を取得　###
+
 
   #has_many :relationships の逆方向(reverse)
+  #reverses_of_relationshipは実際にはない
+  #foreign_key: 'follow_id' と指定して、 user_id 側ではないことを明示
+  #こうしないとRails の命名規則により、User から Relationship を取得するとき、
+  #user_id が使用される
   has_many :reverses_of_relationship, class_name: "Relationship", foreign_key: 'follow_id'
-  #順方向に対して、逆の設定
+  #source: :user で 中間テーブルの user_id のほうが取得したい User だと指定
   has_many :followers, through: :reverses_of_relationship, source: :user
   
   def follow(other_user)
